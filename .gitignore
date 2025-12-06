@@ -1,0 +1,6 @@
+node_modules/
+.next/
+dist/
+.env
+
+git remote add origin https://github.com/Kundank8789/creating-premium-UI.git

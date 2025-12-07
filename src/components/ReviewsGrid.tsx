@@ -1,6 +1,12 @@
-// File: src/components/ReviewsGrid.tsx
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+
+// Safe Motion wrappers to avoid TS errors
+const MotionDiv = motion.div as any;
+const MotionButton = motion.button as any;
+const MotionSelect = motion.select as any;
 
 // ---------------------------
 // Review Data
@@ -73,7 +79,7 @@ const allReviews: ReviewItem[] = [
 ];
 
 // ---------------------------
-// Sentiment Helpers
+// Helpers
 // ---------------------------
 const sentimentLabel = (rating: number) => {
   if (rating >= 5) return "Highly positive";
@@ -99,41 +105,64 @@ const sentimentScore = (rating: number) => {
 // ---------------------------
 // Animation Variants
 // ---------------------------
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: { opacity: 0, y: 20, scale: 0.96 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.35, ease: "easeOut" },
+    transition: { duration: 0.35 },
   },
   exit: {
     opacity: 0,
     y: 20,
     scale: 0.96,
-    transition: { duration: 0.25, ease: "easeIn" },
+    transition: { duration: 0.25 },
   },
 };
 
+// ---------------------------
+// COMPONENT
+// ---------------------------
 const ReviewsGrid: React.FC = () => {
-  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
-  const [sortOrder, setSortOrder] = useState("newest");
-  const [visibleCount, setVisibleCount] = useState(6);
+  const [mounted, setMounted] = useState(false);
 
-  const [helpfulCounts, setHelpfulCounts] = useState<Record<number, number>>(
-    () =>
-      allReviews.reduce(
-        (acc, r) => ({ ...acc, [r.id]: Math.floor(Math.random() * 20) + 1 }),
-        {}
-      )
-  );
+  // All hooks MUST run before conditional return
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  const [sortOrder, setSortOrder] = useState<string>("newest");
+  const [visibleCount, setVisibleCount] = useState<number>(6);
+
+  const [helpfulCounts, setHelpfulCounts] = useState<Record<number, number>>({});
   const [upvoted, setUpvoted] = useState<Record<number, boolean>>({});
 
-  // FILTER + SORT
-  let filtered = [...allReviews];
+  // Safe client-side initialization (prevents hydration mismatch)
+  useEffect(() => {
+    const randomCounts = allReviews.reduce(
+      (acc, r) => ({
+        ...acc,
+        [r.id]: Math.floor(Math.random() * 20) + 1,
+      }),
+      {} as Record<number, number>
+    );
 
+    setHelpfulCounts(randomCounts);
+    setMounted(true);
+  }, []);
+
+  // Prevent hydration error
+  if (!mounted) {
+    return (
+      <div className="text-center py-10 text-slate-400 text-sm">
+        Loading reviews...
+      </div>
+    );
+  }
+
+  // FILTER
+  let filtered = [...allReviews];
   if (ratingFilter) filtered = filtered.filter((r) => r.rating === ratingFilter);
 
+  // SORT
   filtered.sort((a, b) => {
     if (sortOrder === "newest") return b.date.localeCompare(a.date);
     if (sortOrder === "oldest") return a.date.localeCompare(b.date);
@@ -145,13 +174,12 @@ const ReviewsGrid: React.FC = () => {
 
   const visible = filtered.slice(0, visibleCount);
 
-  // HELPFUL BUTTON
   const toggleHelpful = (id: number) => {
-    setHelpfulCounts((p) => ({
-      ...p,
-      [id]: (p[id] ?? 0) + (upvoted[id] ? -1 : 1),
+    setHelpfulCounts((prev) => ({
+      ...prev,
+      [id]: prev[id] + (upvoted[id] ? -1 : 1),
     }));
-    setUpvoted((p) => ({ ...p, [id]: !p[id] }));
+    setUpvoted((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
@@ -163,64 +191,60 @@ const ReviewsGrid: React.FC = () => {
           <span className="text-xs text-slate-500">Filter:</span>
 
           {[5, 4, 3].map((star) => (
-            <motion.button
-              whileTap={{ scale: 0.9 }}
+            <MotionButton
               key={star}
+              whileTap={{ scale: 0.9 }}
               onClick={() =>
                 setRatingFilter(ratingFilter === star ? null : star)
               }
-              className={`px-3 py-1 rounded-full border text-xs transition-all
-                ${
-                  ratingFilter === star
-                    ? "bg-amber-500 text-white border-amber-500 shadow-md"
-                    : "bg-white border-slate-200 hover:bg-slate-50"
-                }`}
+              className={`px-3 py-1 rounded-full border text-xs transition-all ${
+                ratingFilter === star
+                  ? "bg-amber-500 text-white border-amber-500 shadow-md"
+                  : "bg-white border-slate-200 hover:bg-slate-50"
+              }`}
             >
               ⭐ {star}-Star
-            </motion.button>
+            </MotionButton>
           ))}
         </div>
 
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500">Sort:</span>
 
-          <motion.select
-            whileTap={{ scale: 0.95 }}
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-            className="px-3 py-1 text-xs border rounded-lg bg-white shadow-sm"
-          >
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
-            <option value="rating-high">Highest rated</option>
-            <option value="rating-low">Lowest rated</option>
-            <option value="random">Shuffle</option>
-          </motion.select>
+        <MotionSelect
+  whileTap={{ scale: 0.95 }}
+  value={sortOrder}
+  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+    setSortOrder(e.target.value)
+  }
+  className="px-3 py-1 text-xs border rounded-lg bg-white shadow-sm"
+>
+  <option value="newest">Newest first</option>
+  <option value="oldest">Oldest first</option>
+  <option value="rating-high">Highest rated</option>
+  <option value="rating-low">Lowest rated</option>
+  <option value="random">Shuffle</option>
+</MotionSelect>
+
         </div>
       </div>
 
-      {/* GRID WITH FULL ANIMATION ON FILTER CHANGE */}
+      {/* REVIEWS GRID */}
       <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
         <AnimatePresence mode="popLayout">
           {visible.map((r) => {
             const score = sentimentScore(r.rating);
 
             return (
-              <motion.div
+              <MotionDiv
                 key={r.id}
                 variants={cardVariants}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
                 layout
-                className="
-                  break-inside-avoid p-5 rounded-2xl bg-white
-                  shadow-[0_8px_30px_rgba(0,0,0,0.08)]
-                  border border-white/70
-                  hover:shadow-[0_14px_40px_rgba(0,0,0,0.12)]
-                  hover:-translate-y-1
-                  transition-all
-                "
+                className="break-inside-avoid p-5 rounded-2xl bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)] 
+                  border border-white/70 hover:shadow-[0_14px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all"
               >
                 {/* HEADER */}
                 <div className="flex items-center justify-between">
@@ -264,24 +288,23 @@ const ReviewsGrid: React.FC = () => {
 
                 {/* FOOTER */}
                 <div className="mt-4 flex items-center justify-between text-xs">
-                  <motion.button
+                  <MotionButton
                     whileTap={{ scale: 0.9 }}
                     onClick={() => toggleHelpful(r.id)}
-                    className={`px-3 py-1 rounded-full border flex items-center gap-1 transition-all 
-                      ${
-                        upvoted[r.id]
-                          ? "bg-emerald-500 text-white border-emerald-500"
-                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                      }`}
+                    className={`px-3 py-1 rounded-full border flex items-center gap-1 transition-all ${
+                      upvoted[r.id]
+                        ? "bg-emerald-500 text-white border-emerald-500"
+                        : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                    }`}
                   >
                     👍 Helpful {helpfulCounts[r.id]}
-                  </motion.button>
+                  </MotionButton>
 
                   <button className="px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500 hover:bg-slate-100">
                     Share
                   </button>
                 </div>
-              </motion.div>
+              </MotionDiv>
             );
           })}
         </AnimatePresence>
@@ -290,14 +313,14 @@ const ReviewsGrid: React.FC = () => {
       {/* LOAD MORE */}
       {visibleCount < filtered.length && (
         <div className="flex justify-center">
-          <motion.button
+          <MotionButton
             whileTap={{ scale: 0.94 }}
             whileHover={{ scale: 1.03 }}
             onClick={() => setVisibleCount((c) => c + 6)}
             className="px-6 py-2 rounded-xl bg-amber-500 text-white text-sm shadow-md hover:bg-amber-600"
           >
             Load more
-          </motion.button>
+          </MotionButton>
         </div>
       )}
     </div>

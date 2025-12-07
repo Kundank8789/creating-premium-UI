@@ -1,16 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import {
+  motion,
+  AnimatePresence,
+  type Variants
+} from "framer-motion";
 
-// Safe Motion wrappers to avoid TS errors
+// ANY-TYPE WRAPPERS (avoids TS ‘className’ errors)
 const MotionDiv = motion.div as any;
 const MotionButton = motion.button as any;
 const MotionSelect = motion.select as any;
 
-// ---------------------------
-// Review Data
-// ---------------------------
+/* -------------------------------------------------
+   REVIEW DATA
+------------------------------------------------- */
 interface ReviewItem {
   id: number;
   name: string;
@@ -78,35 +82,29 @@ const allReviews: ReviewItem[] = [
   },
 ];
 
-// ---------------------------
-// Helpers
-// ---------------------------
-const sentimentLabel = (rating: number) => {
-  if (rating >= 5) return "Highly positive";
-  if (rating === 4) return "Positive";
-  if (rating === 3) return "Mixed";
-  return "Neutral";
-};
+/* -------------------------------------------------
+   SENTIMENT HELPERS
+------------------------------------------------- */
+const sentimentLabel = (rating: number) =>
+  rating >= 5 ? "Highly positive" : rating === 4 ? "Positive" : rating === 3 ? "Mixed" : "Neutral";
 
-const sentimentColor = (rating: number) => {
-  if (rating >= 5) return "bg-emerald-50 text-emerald-700 border-emerald-100";
-  if (rating === 4) return "bg-amber-50 text-amber-700 border-amber-100";
-  if (rating === 3) return "bg-slate-50 text-slate-600 border-slate-200";
-  return "bg-slate-100 text-slate-600 border-slate-200";
-};
+const sentimentColor = (rating: number) =>
+  rating >= 5
+    ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+    : rating === 4
+    ? "bg-amber-50 text-amber-700 border-amber-100"
+    : rating === 3
+    ? "bg-slate-50 text-slate-600 border-slate-200"
+    : "bg-slate-100 text-slate-600 border-slate-200";
 
-const sentimentScore = (rating: number) => {
-  if (rating >= 5) return 96;
-  if (rating === 4) return 88;
-  if (rating === 3) return 72;
-  return 60;
-};
+const sentimentScore = (rating: number) =>
+  rating >= 5 ? 96 : rating === 4 ? 88 : rating === 3 ? 72 : 60;
 
-// ---------------------------
-// Animation Variants
-// ---------------------------
+/* -------------------------------------------------
+   CARD VARIANTS
+------------------------------------------------- */
 const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 20, scale: 0.96 },
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
   visible: {
     opacity: 1,
     y: 0,
@@ -116,53 +114,40 @@ const cardVariants: Variants = {
   exit: {
     opacity: 0,
     y: 20,
-    scale: 0.96,
+    scale: 0.95,
     transition: { duration: 0.25 },
   },
 };
 
-// ---------------------------
-// COMPONENT
-// ---------------------------
-const ReviewsGrid: React.FC = () => {
+/* -------------------------------------------------
+   MAIN COMPONENT
+------------------------------------------------- */
+export default function ReviewsGrid() {
   const [mounted, setMounted] = useState(false);
-
-  // All hooks MUST run before conditional return
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
-  const [sortOrder, setSortOrder] = useState<string>("newest");
-  const [visibleCount, setVisibleCount] = useState<number>(6);
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [visibleCount, setVisibleCount] = useState(6);
 
   const [helpfulCounts, setHelpfulCounts] = useState<Record<number, number>>({});
   const [upvoted, setUpvoted] = useState<Record<number, boolean>>({});
 
-  // Safe client-side initialization (prevents hydration mismatch)
+  // Prevent hydration issues
   useEffect(() => {
-    const randomCounts = allReviews.reduce(
-      (acc, r) => ({
-        ...acc,
-        [r.id]: Math.floor(Math.random() * 20) + 1,
-      }),
-      {} as Record<number, number>
-    );
-
-    setHelpfulCounts(randomCounts);
     setMounted(true);
+    setHelpfulCounts(
+      allReviews.reduce(
+        (acc, r) => ({ ...acc, [r.id]: Math.floor(Math.random() * 20) + 1 }),
+        {}
+      )
+    );
   }, []);
 
-  // Prevent hydration error
-  if (!mounted) {
-    return (
-      <div className="text-center py-10 text-slate-400 text-sm">
-        Loading reviews...
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
-  // FILTER
+  /* FILTER + SORT */
   let filtered = [...allReviews];
   if (ratingFilter) filtered = filtered.filter((r) => r.rating === ratingFilter);
 
-  // SORT
   filtered.sort((a, b) => {
     if (sortOrder === "newest") return b.date.localeCompare(a.date);
     if (sortOrder === "oldest") return a.date.localeCompare(b.date);
@@ -174,12 +159,23 @@ const ReviewsGrid: React.FC = () => {
 
   const visible = filtered.slice(0, visibleCount);
 
+  /* HELPFUL */
   const toggleHelpful = (id: number) => {
-    setHelpfulCounts((prev) => ({
-      ...prev,
-      [id]: prev[id] + (upvoted[id] ? -1 : 1),
+    setHelpfulCounts((p) => ({
+      ...p,
+      [id]: (p[id] ?? 0) + (upvoted[id] ? -1 : 1),
     }));
-    setUpvoted((prev) => ({ ...prev, [id]: !prev[id] }));
+    setUpvoted((p) => ({ ...p, [id]: !p[id] }));
+  };
+
+  /* -------------------------------------------------
+     GOD MODE CARD INTERACTIVE 3D EFFECT
+  ------------------------------------------------- */
+  const calcTilt = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    return { rotateX: -(y / 20), rotateY: x / 20 };
   };
 
   return (
@@ -192,16 +188,17 @@ const ReviewsGrid: React.FC = () => {
 
           {[5, 4, 3].map((star) => (
             <MotionButton
-              key={star}
               whileTap={{ scale: 0.9 }}
+              key={star}
               onClick={() =>
                 setRatingFilter(ratingFilter === star ? null : star)
               }
-              className={`px-3 py-1 rounded-full border text-xs transition-all ${
-                ratingFilter === star
-                  ? "bg-amber-500 text-white border-amber-500 shadow-md"
-                  : "bg-white border-slate-200 hover:bg-slate-50"
-              }`}
+              className={`px-3 py-1 rounded-full border text-xs transition-all
+                ${
+                  ratingFilter === star
+                    ? "bg-amber-500 text-white border-amber-500 shadow-md"
+                    : "bg-white border-slate-200 hover:bg-slate-50"
+                }`}
             >
               ⭐ {star}-Star
             </MotionButton>
@@ -211,25 +208,24 @@ const ReviewsGrid: React.FC = () => {
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500">Sort:</span>
 
-        <MotionSelect
-  whileTap={{ scale: 0.95 }}
-  value={sortOrder}
-  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-    setSortOrder(e.target.value)
-  }
-  className="px-3 py-1 text-xs border rounded-lg bg-white shadow-sm"
->
-  <option value="newest">Newest first</option>
-  <option value="oldest">Oldest first</option>
-  <option value="rating-high">Highest rated</option>
-  <option value="rating-low">Lowest rated</option>
-  <option value="random">Shuffle</option>
-</MotionSelect>
-
+          <MotionSelect
+            whileTap={{ scale: 0.95 }}
+            value={sortOrder}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              setSortOrder(e.target.value)
+            }
+            className="px-3 py-1 text-xs border rounded-lg bg-white shadow-sm"
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="rating-high">Highest rated</option>
+            <option value="rating-low">Lowest rated</option>
+            <option value="random">Shuffle</option>
+          </MotionSelect>
         </div>
       </div>
 
-      {/* REVIEWS GRID */}
+      {/* GRID */}
       <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
         <AnimatePresence mode="popLayout">
           {visible.map((r) => {
@@ -243,9 +239,23 @@ const ReviewsGrid: React.FC = () => {
                 animate="visible"
                 exit="exit"
                 layout
-                className="break-inside-avoid p-5 rounded-2xl bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)] 
-                  border border-white/70 hover:shadow-[0_14px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all"
+                className="relative break-inside-avoid p-5 rounded-2xl bg-white
+                  shadow-[0_8px_30px_rgba(0,0,0,0.08)]
+                  border border-white/70
+                  hover:shadow-[0_18px_45px_rgba(0,0,0,0.14)]
+                  transition-all duration-300
+                  group overflow-hidden"
+                onMouseMove={(e: any) => {
+                  const { rotateX, rotateY } = calcTilt(e);
+                  e.currentTarget.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                }}
+                onMouseLeave={(e: any) => {
+                  e.currentTarget.style.transform = "rotateX(0deg) rotateY(0deg)";
+                }}
               >
+                {/* SHINE EFFECT */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
                 {/* HEADER */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -291,11 +301,12 @@ const ReviewsGrid: React.FC = () => {
                   <MotionButton
                     whileTap={{ scale: 0.9 }}
                     onClick={() => toggleHelpful(r.id)}
-                    className={`px-3 py-1 rounded-full border flex items-center gap-1 transition-all ${
-                      upvoted[r.id]
-                        ? "bg-emerald-500 text-white border-emerald-500"
-                        : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                    }`}
+                    className={`px-3 py-1 rounded-full border flex items-center gap-1 transition-all 
+                      ${
+                        upvoted[r.id]
+                          ? "bg-emerald-500 text-white border-emerald-500"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                      }`}
                   >
                     👍 Helpful {helpfulCounts[r.id]}
                   </MotionButton>
@@ -325,6 +336,4 @@ const ReviewsGrid: React.FC = () => {
       )}
     </div>
   );
-};
-
-export default ReviewsGrid;
+}

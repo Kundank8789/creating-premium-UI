@@ -1,104 +1,42 @@
-"use client";
-
+// @ts-nocheck
 import React from "react";
 import { motion } from "framer-motion";
 import ProductGallery from "../components/ProductGallery";
 import LiveCounters from "../components/LiveCounters";
 import ReviewSlider from "../components/ReviewSlider";
 import ReviewsGrid from "../components/ReviewsGrid";
-
-/* ----------------------------------------------------
-   FIXED MOTION WRAPPERS
------------------------------------------------------ */
-const MotionH1 = motion.h1 as any;
-const MotionSpan = motion.span as any;
-const MotionDiv = motion.div as any;
-const MotionHeader = motion.header as any;
-const MotionSection = motion.section as any;
-const MotionAside = motion.aside as any;
-const MotionButton = motion.button as any;
-
-/* ----------------------------------------------------
-   WORD-BY-WORD HEADING ANIMATION (FIXED)
------------------------------------------------------ */
-const WordFade: React.FC<{ text: string; className?: string }> = ({
-  text,
-  className,
-}) => {
-  const words = text.split(" ");
-
-  return (
-    <MotionH1
-      className={className}
-      initial="hidden"
-      animate="visible"
-      variants={{
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: { staggerChildren: 0.08 },
-        },
-      }}
-    >
-      {words.map((w, i) => (
-        <MotionSpan
-          key={i}
-          className="inline-block mr-1"
-          variants={{
-            hidden: { opacity: 0, y: 16 },
-            visible: {
-              opacity: 1,
-              y: 0,
-              transition: { duration: 0.45, ease: "easeOut" },
-            },
-          }}
-        >
-          {w}
-        </MotionSpan>
-      ))}
-    </MotionH1>
-  );
-};
-
-/* ----------------------------------------------------
-                     MAIN PAGE
------------------------------------------------------ */
+import WordFade from "../components/WordFade";
 
 const Home: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-amber-50 relative overflow-hidden">
-
-      {/* FLOATING GLOW OBJECTS */}
-      <MotionDiv
-        className="pointer-events-none absolute -top-32 -left-24 h-72 w-72 rounded-full bg-amber-300/40 blur-[110px]"
-        animate={{ y: [0, 30, 0], x: [0, 25, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <MotionDiv
-        className="pointer-events-none absolute bottom-0 right-0 h-80 w-80 rounded-full bg-orange-300/40 blur-[120px]"
-        animate={{ y: [0, -30, 0], x: [0, -20, 0] }}
+    <div className="min-h-screen bg-hero-texture bg-gradient-to-b from-peanut-50 via-amber-50/60 to-peanut-50 relative overflow-hidden">
+      {/* glow blobs */}
+      <motion.div
+        className="pointer-events-none absolute -top-40 -left-32 h-80 w-80 rounded-full bg-amber-300/45 blur-[120px]"
+        animate={{ y: [0, 30, 0], x: [0, 20, 0] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="pointer-events-none absolute bottom-0 right-0 h-96 w-96 rounded-full bg-orange-300/45 blur-[130px]"
+        animate={{ y: [0, -30, 0], x: [0, -24, 0] }}
+        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
       />
 
       <div className="max-w-7xl mx-auto px-6 relative">
-
-        {/* ----------------------------------------------------
-                    HEADER SECTION
-        ----------------------------------------------------- */}
-        <MotionHeader
-          className="flex items-center justify-between py-8"
-          initial={{ opacity: 0, y: -20 }}
+        {/* header */}
+        <motion.header
+          className="flex items-center justify-between py-8 gap-4"
+          initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
           <WordFade
-            text="Word of Mouth — Product"
-            className="text-4xl md:text-5xl font-extrabold text-[#4b2e18]"
+            text="Word of Mouth — Crunchy Peanut Butter"
+            className="text-3xl md:text-5xl font-extrabold text-peanut-900 tracking-tight"
           />
-
-          <MotionDiv
-            className="hidden md:flex gap-2 text-xs uppercase tracking-wide text-amber-700/80"
-            initial={{ opacity: 0, scale: 0.9 }}
+          <motion.div
+            className="hidden md:flex gap-2 text-[11px] uppercase tracking-wide text-amber-800/80"
+            initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
           >
@@ -108,115 +46,140 @@ const Home: React.FC = () => {
             <span className="px-3 py-1 rounded-full bg-white/80 border border-amber-100">
               Product page demo
             </span>
-          </MotionDiv>
-        </MotionHeader>
+          </motion.div>
+        </motion.header>
 
-        {/* ----------------------------------------------------
-                MAIN CONTENT SECTION (GALLERY + SIDEBAR)
-        ----------------------------------------------------- */}
-        <MotionSection
-          className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-14 items-start mt-10"
+        {/* HERO SECTION */}
+        <motion.section
+          className="grid grid-cols-1 lg:grid-cols-[1.6fr_1.1fr] gap-14 items-start mt-6 md:mt-10"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           variants={{
-            hidden: { opacity: 0, y: 20 },
+            hidden: { opacity: 0, y: 24 },
             visible: { opacity: 1, y: 0, transition: { duration: 0.7 } },
           }}
         >
-          {/* PRODUCT GALLERY */}
-          <MotionDiv
-            initial={{ opacity: 0, x: -30 }}
+          {/* left: gallery */}
+          <motion.div
+            initial={{ opacity: 0, x: -26 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="w-full"
           >
             <ProductGallery />
-          </MotionDiv>
+          </motion.div>
 
-          {/* SIDEBAR */}
-          <MotionAside
-            className="space-y-10 w-full max-w-[420px] mx-auto"
-            initial={{ opacity: 0, x: 30 }}
+          {/* right: product card + slider */}
+          <motion.aside
+            className="space-y-10 w-full max-w-[440px] mx-auto"
+            initial={{ opacity: 0, x: 26 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
-            {/* BUY BOX */}
-            <MotionDiv
-              className="p-6 rounded-2xl shadow-xl bg-white border border-white/90 backdrop-blur-sm"
-              whileHover={{ scale: 1.01, boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}
-              transition={{ type: "spring", stiffness: 200, damping: 18 }}
+            {/* buy card */}
+            <motion.div
+              className="p-6 rounded-3xl glass-card shadow-soft-lg"
+              whileHover={{
+                scale: 1.01,
+                boxShadow: "0 18px 48px rgba(15,23,42,0.32)",
+              }}
+              transition={{ type: "spring", stiffness: 210, damping: 20 }}
             >
-              <h2 className="text-2xl font-semibold">
-                Crunchy Peanut Butter — 500g
-              </h2>
-              <p className="text-amber-600 font-bold text-xl mt-2">₹499</p>
-
-              <p className="text-sm text-slate-600 mt-2 leading-relaxed">
-                Slow-roasted peanuts, crunchy bits, no weird additives.
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-2xl font-semibold text-peanut-900">
+                    Crunchy Peanut Butter — 500g
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Slow roasted, small batch, zero refined sugar.
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-peanut-700 line-through text-xs">₹699</p>
+                  <p className="text-amber-600 font-bold text-xl leading-none">
+                    ₹499
+                  </p>
+                  <p className="text-[11px] text-emerald-600 mt-1">
+                    Launch offer · 28% off
+                  </p>
+                </div>
+              </div>
 
               <div className="mt-4">
                 <LiveCounters />
               </div>
 
               <div className="mt-5 flex gap-3">
-                <MotionButton
-                  className="px-4 py-2 rounded-xl border text-sm hover:bg-amber-50"
+                <motion.button
+                  className="px-4 py-2 rounded-xl border text-sm hover:bg-amber-50 text-peanut-800 border-amber-100 flex-1"
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.97 }}
                 >
                   Add to cart
-                </MotionButton>
-
-                <MotionButton
-                  className="px-4 py-2 rounded-xl bg-amber-500 text-white text-sm shadow-sm"
-                  whileHover={{ scale: 1.05 }}
+                </motion.button>
+                <motion.button
+                  className="px-4 py-2 rounded-xl bg-amber-500 text-white text-sm shadow-sm flex-1"
+                  whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
                 >
                   Buy now
-                </MotionButton>
+                </motion.button>
               </div>
-            </MotionDiv>
 
-            {/* REVIEW SLIDER CARD */}
-            <MotionDiv
-              className="p-5 rounded-2xl shadow-xl bg-gradient-to-r from-[#3b2a1f] to-[#7a3f11] text-yellow-50 border border-[#ffffff22] backdrop-blur-sm"
+              <div className="mt-4 flex items-center justify-between text-[11px] text-slate-500">
+                <span>Ships in 24 hours · PAN India</span>
+                <span className="flex items-center gap-1">
+                  ⭐ 4.8 · 230+ ratings
+                </span>
+              </div>
+            </motion.div>
+
+            {/* review slider sidecard */}
+            <motion.div
+              className="p-5 rounded-3xl shadow-soft-lg bg-gradient-to-r from-[#3b2a1f] to-[#7a3f11] text-amber-50 border border-[#ffffff22] backdrop-blur-sm"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
             >
-              <h3 className="text-xl font-bold">Customer Reviews</h3>
+              <h3 className="text-xl font-bold">Loved by real humans</h3>
               <p className="text-sm opacity-90 mt-1 mb-4">
-                Real stories from happy customers.
+                Live rotating testimonials from early customers.
               </p>
-
               <ReviewSlider />
-            </MotionDiv>
-          </MotionAside>
-        </MotionSection>
+            </motion.div>
+          </motion.aside>
+        </motion.section>
 
-        {/* ----------------------------------------------------
-                     REVIEWS GRID
-        ----------------------------------------------------- */}
-        <MotionSection
-          className="mt-24 pb-20"
+        {/* REVIEWS GRID SECTION */}
+        <motion.section
+          id="reviews"
+          className="mt-20 pb-20"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.8 }}
         >
-          <h3 className="text-3xl font-semibold mb-3">Reviews</h3>
-
-          <p className="text-sm text-slate-600 mb-8 max-w-xl">
-            Scroll through authentic reviews captured directly using Word of Mouth widgets.
-          </p>
+          <div className="flex items-end justify-between gap-4 mb-6">
+            <div>
+              <h3 className="text-3xl font-semibold text-peanut-900">
+                Reviews that actually feel human
+              </h3>
+              <p className="text-sm text-slate-600 mt-2 max-w-xl">
+                Scroll through authentic, human-sounding reviews captured
+                directly via Word of Mouth widgets. No stiff “Lorem ipsum”
+                energy here.
+              </p>
+            </div>
+            <div className="hidden md:block text-xs text-slate-500">
+              Powered by <span className="font-semibold">Word of Mouth</span>
+            </div>
+          </div>
 
           <ReviewsGrid />
-        </MotionSection>
+        </motion.section>
       </div>
     </div>
   );

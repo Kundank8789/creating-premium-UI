@@ -1,19 +1,34 @@
-import { motion } from "framer-motion";
-import React from "react";
+// @ts-nocheck
+"use client";
 
-const FadeIn: React.FC<{ children: React.ReactNode; delay?: number }> = ({
-  children,
+import React from "react";
+import { motion } from "framer-motion";
+
+interface FadeInProps {
+  as?: keyof JSX.IntrinsicElements;
+  delay?: number;
+  children: React.ReactNode;
+  className?: string;
+}
+
+const FadeIn: React.FC<FadeInProps> = ({
+  as: Tag = "div",
   delay = 0,
+  children,
+  className,
 }) => {
+  const MotionTag: any = motion[Tag];
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <MotionTag
+      className={className}
+      initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, delay }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.45, delay, ease: "easeOut" }}
     >
       {children}
-    </motion.div>
+    </MotionTag>
   );
 };
 

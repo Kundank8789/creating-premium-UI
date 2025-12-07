@@ -1,58 +1,48 @@
+// @ts-nocheck
 "use client";
 
+import React from "react";
 import { motion } from "framer-motion";
-
-// FIX: wrap motion components to bypass wrong TS types
-const MotionH1 = motion.h1 as any;
-const MotionSpan = motion.span as any;
 
 interface WordFadeProps {
   text: string;
-  delay?: number;
   className?: string;
+  delay?: number;
 }
 
-const WordFade: React.FC<WordFadeProps> = ({ text, delay = 0, className }) => {
+const WordFade: React.FC<WordFadeProps> = ({ text, className, delay = 0 }) => {
   const words = text.split(" ");
 
   return (
-    <MotionH1
+    <motion.h1
       className={className}
       initial="hidden"
       animate="visible"
       variants={{
+        hidden: { opacity: 0 },
         visible: {
-          transition: {
-            staggerChildren: 0.12,
-            delay,
-          },
+          opacity: 1,
+          transition: { staggerChildren: 0.06, delay },
         },
       }}
     >
-      {words.map((word, i) => (
-        <MotionSpan
+      {words.map((w, i) => (
+        <motion.span
           key={i}
-          className="inline-block mr-2"
+          className="inline-block mr-1"
           variants={{
-            hidden: { opacity: 0, y: 15, scale: 0.95 },
+            hidden: { opacity: 0, y: 16 },
             visible: {
               opacity: 1,
               y: 0,
-              scale: 1,
-              transition: {
-                duration: 0.55,
-                ease: "easeOut",
-                type: "spring",
-                stiffness: 120,
-                damping: 10,
-              },
+              transition: { duration: 0.4, ease: "easeOut" },
             },
           }}
         >
-          {word}
-        </MotionSpan>
+          {w}
+        </motion.span>
       ))}
-    </MotionH1>
+    </motion.h1>
   );
 };
 

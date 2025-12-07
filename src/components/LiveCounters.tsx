@@ -1,71 +1,73 @@
+// @ts-nocheck
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-// FIX: Wrap motion elements to bypass broken TS types
-const MotionDiv = motion.div as any;
-const MotionSpan = motion.span as any;
-
 interface LiveCountersProps {
   deterministic?: boolean;
 }
 
-const LiveCounters: React.FC<LiveCountersProps> = ({ deterministic = false }) => {
-  const [viewing, setViewing] = useState<number>(120);
-  const [sold, setSold] = useState<number>(34);
+const LiveCounters: React.FC<LiveCountersProps> = ({
+  deterministic = false,
+}) => {
+  const [viewing, setViewing] = useState<number>(126);
+  const [sold, setSold] = useState<number>(38);
 
   useEffect(() => {
     const t = setInterval(() => {
       if (deterministic) {
         setViewing((v) => v + 1);
-        setSold((s) => s + (s % 10 === 0 ? 1 : 0));
+        setSold((s) => s + (s % 8 === 0 ? 1 : 0));
       } else {
-        setViewing((v) => Math.max(1, v + Math.floor(Math.random() * 3 - 1)));
-        setSold((s) => s + (Math.random() > 0.96 ? 1 : 0));
+        setViewing((v) => Math.max(5, v + Math.floor(Math.random() * 4 - 1)));
+        setSold((s) => s + (Math.random() > 0.94 ? 1 : 0));
       }
-    }, 2200);
-    
+    }, 2100);
+
     return () => clearInterval(t);
   }, [deterministic]);
 
   return (
     <div className="flex gap-4 items-center">
-      {/* VIEWING NOW */}
-      <MotionDiv
-        animate={{ scale: [1, 1.08, 1], rotate: [0, -1.5, 0] }}
+      {/* viewing now */}
+      <motion.div
+        animate={{ scale: [1, 1.06, 1], rotate: [0, -1.2, 0] }}
         transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-        className="p-3 rounded-xl bg-amber-50 border border-amber-100 min-w-[110px]"
+        className="p-3 rounded-2xl bg-amber-50 border border-amber-100 min-w-[120px]"
       >
-        <div className="text-xs text-gray-500">Viewing now</div>
-        <MotionDiv
+        <div className="text-[11px] text-slate-500 flex items-center gap-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          Viewing now
+        </div>
+        <motion.div
           key={viewing}
           initial={{ rotateX: 90, opacity: 0 }}
           animate={{ rotateX: 0, opacity: 1 }}
           transition={{ duration: 0.25 }}
-          className="font-bold text-lg tabular-nums"
+          className="font-semibold text-lg tabular-nums text-slate-900"
         >
           {viewing}
-        </MotionDiv>
-      </MotionDiv>
+        </motion.div>
+      </motion.div>
 
-      {/* SOLD RECENTLY */}
-      <MotionDiv
-        animate={{ y: [0, -3, 0], scale: [1, 1.02, 1] }}
-        transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
-        className="p-3 rounded-xl bg-white border min-w-[140px]"
+      {/* sold recently */}
+      <motion.div
+        animate={{ y: [0, -4, 0], scale: [1, 1.02, 1] }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+        className="p-3 rounded-2xl bg-white border border-slate-200 min-w-[150px]"
       >
-        <div className="text-xs text-gray-500">Sold recently</div>
-        <MotionDiv
+        <div className="text-[11px] text-slate-500">Sold in last 24h</div>
+        <motion.div
           key={sold}
           initial={{ rotateX: -90, opacity: 0 }}
           animate={{ rotateX: 0, opacity: 1 }}
           transition={{ duration: 0.25 }}
-          className="font-bold text-lg tabular-nums"
+          className="font-semibold text-lg tabular-nums text-emerald-600"
         >
-          {sold}
-        </MotionDiv>
-      </MotionDiv>
+          {sold} jars
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
